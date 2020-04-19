@@ -1,0 +1,42 @@
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: #111;
+  color: #fafafa;
+}
+
+#webcam-capture {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+}
+
+#webcam-capture p {
+  position: absolute;
+  font-weight: 700;
+}
+
+#canvas-container {
+  width: 100vw;
+  height: 100vh;
+  margin: 0 auto;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  visibility: hidden;
+}
+
+#controls {
+  visibility: hidden;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding-bottom: 30px;
+  display: flex;
+  justify-content: space-evenly;
+}
