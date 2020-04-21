@@ -4,6 +4,7 @@ const canvasContainer = document.getElementById("canvas-container");
 const controls = document.getElementById("controls");
 const drawModeButtons = document.querySelectorAll("input[type=radio]");
 const radiusRange = document.getElementById("radius-range");
+const framerateRange = document.getElementById("framerate-range");
 const saveImage = document.getElementById("save-image");
 
 /*** DEFAULT SETTINGS ***/
@@ -14,8 +15,8 @@ let drawMode = document.querySelector("input[type=radio]:checked").value;
 
 /*** RUNTIME ***/
 function setup() {
-  frameRate(5);
-  const canvas = createCanvas(0,0);
+  frameRate(parseInt(framerateRange.value));
+  const canvas = createCanvas(0, 0);
   canvas.parent('canvas-container');
   video = createCapture(VIDEO);
   video.parent('webcam-capture');
@@ -54,16 +55,22 @@ function fixSelfImage() {
 
 /*** ALTERATION CONTROLS ***/
 drawModeButtons.forEach(button => {
-  button.addEventListener("change", function(event) {
+  button.addEventListener("change", function (event) {
     drawMode = document.querySelector("input[type=radio]:checked").value;
   });
 });
 
-radiusRange.addEventListener("change", function(event) {
+radiusRange.addEventListener("change", function (event) {
+  document.getElementById("current-radius").innerHTML = event.target.value;
   radius = parseInt(event.target.value);
 });
 
-saveImage.addEventListener("click", function() {
+framerateRange.addEventListener("change", function (event) {
+  document.getElementById("current-framerate").innerHTML = event.target.value;
+  frameRate(parseInt(event.target.value));
+});
+
+saveImage.addEventListener("click", function () {
   saveCanvas("fixed-self-image", "jpg");
 });
 
