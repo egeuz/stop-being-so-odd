@@ -18,12 +18,12 @@ function setup() {
   frameRate(parseInt(framerateRange.value));
   const canvas = createCanvas(0, 0);
   canvas.parent('canvas-container');
-  video = createCapture(VIDEO);
+  video = createCapture(VIDEO, () => { webcamCapture.querySelector("p").style.display = "block" });
   video.parent('webcam-capture');
 }
 
 function draw() {
-  if (imageLoaded) fixSelfImage();
+  if (imageLoaded) fixSelfImageOddsOnly();
 }
 
 /*** VIDEO CAPTURE ***/
@@ -40,10 +40,80 @@ function init() {
 }
 
 /*** IMAGE ALTERATION ***/
+//split canvas into equal areas then apply the filter to each of them separately [BROKEN]
+function fixSelfImage4() {
+  for(let x = 0; x < width; x++) {
+    for(let y = 0; y < height; y++) {
+      const basePixel = get(x, y);
+      if(!pixelIsOdd(basePixel)) {
+        for(let rx = x - radius; rx < x + radius; rx++) {
+          for(let ry = y - radius; ry < y + radius; ry++) {
+            if (rx < 0 || rx >= width || ry < 0 || ry >= height) continue;
+            if (dist(rx, ry, x, y) > radius) continue;
+            const pixel = get(rx, ry);
+            if(pixelIsOdd(pixel)) {
+              const newColor = getColorAverage(basePixel, pixel);
+              set(x, y, newColor);
+            }
+          }
+        }
+      }
+    }
+  }
+  console.log("completed");
+  updatePixels();
+}
+
+
+//finds an even point, then fixes only OTHER odd pixels in the selection radius
+function fixSelfImageOddsOnly() {
+  const point = getPixel(drawMode);
+  const basePixel = get(point.x, point.y);
+
+  if (!pixelIsOdd(basePixel)) {
+    for (let x = point.x - radius; x < point.x + radius; x++) {
+      for (let y = point.y - radius; y < point.y + radius; y++) {
+        //brush ignores area outside image
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+        //make brush circular
+        if (dist(point.x, point.y, x, y) > radius) continue;
+        //average the pixel
+        const pixel = get(x, y);
+        if (pixelIsOdd(pixel)) {
+          const newColor = getColorAverage(basePixel, pixel);
+          set(x, y, newColor);
+        }
+      }
+    }
+    updatePixels();
+  }
+
+}
+
+function fixSelfImageWhole() {
+  const point = getPixel(drawMode);
+  const basePixel = get(point.x, point.y);
+  if (reduceNumber(sumColors(...basePixel)) % 2 === 0) {
+    for (let x = point.x - radius; x < point.x + radius; x++) {
+      for (let y = point.y - radius; y < point.y + radius; y++) {
+        //brush ignores edges
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+        //make brush circular;
+        if (dist(point.x, point.y, x, y) > radius) continue;
+
+        const pixel = get(x, y);
+        const newColor = getColorAverage(basePixel, pixel);
+        set(x, y, newColor);
+      }
+    }
+    updatePixels();
+  }
+
+}
+
+
 function fixSelfImage() {
   const point = getPixel(drawMode);
-  console.log(point.y);
-  console.log(point.y + radius);
   for (let x = point.x - radius; x < point.x + radius; x++) {
     for (let y = point.y - radius; y < point.y + radius; y++) {
       const pixel = get(x, y);
@@ -75,10 +145,28 @@ saveImage.addEventListener("click", function () {
 });
 
 /*** HELPER METHODS ***/
+
+
+//getting pixel out of point
 const getPixel = mode => (mode === "mouse") ? createVector(mouseX, mouseY) : createVector(random(0, width), random(0, height));
-const colorShift = pixel => pixel.map((v, i) => (i !== 3) ? offsetColorValue(v) : v);
+const pixelIsOdd = (pixel) => reduceNumber(sumColors(...pixel)) % 2 === 1;
+//recursive odd/even algorithm
 const sumColors = (r, g, b) => r + g + b;
 const reduceNumber = num => (num - 1) % 9 + 1;
+//color shift algorithm #2
+const getColorAverage = (pixel1, pixel2) => {
+  const result = [0, 0, 0, 255];
+  return result.map((value, index) => {
+    if (index !== 3) {
+      return (pixel1[index] + pixel2[index]) / 2;
+      return Math.sqrt((pixel1[index] ** 2 + pixel2[index] ** 2) / 2);
+    } else {
+      return 255;
+    }
+  });
+}
+//color shift algorithm #1
+const colorShift = pixel => pixel.map((v, i) => (i !== 3) ? offsetColorValue(v) : v);
 const offsetColorValue = n => n + (n <= 0 || n >= 255) ? rng(0, 255) : randomFlip(sumOfDigits(n));
 const sumOfDigits = n => (n + "").split("").map(d => parseInt(d)).reduce((a, b) => a + b);
 const randomFlip = n => Math.random() < 0.5 ? n : -n;
