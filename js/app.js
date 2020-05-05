@@ -158,7 +158,6 @@ const getColorAverage = (pixel1, pixel2) => {
   const result = [0, 0, 0, 255];
   return result.map((value, index) => {
     if (index !== 3) {
-      return (pixel1[index] + pixel2[index]) / 2;
       return Math.sqrt((pixel1[index] ** 2 + pixel2[index] ** 2) / 2);
     } else {
       return 255;
